@@ -6,14 +6,48 @@ filled in as strings with either
 a global executable or a path to
 an executable
 ]]
--- THESE ARE EXAMPLE CONFIGS FEEL FREE TO CHANGE TO WHATEVER YOU WANT
+local opts = { noremap = true, silent = true }
+
+-- Shorten function name
+local keymap = vim.api.nvim_set_keymap
 
 -- general
 lvim.log.level = "warn"
 lvim.format_on_save = true
-lvim.colorscheme = "tokyonight"
+lvim.colorscheme = "lunar"
+vim.opt.backup = false
+vim.opt.undofile = false
+vim.cmd "set whichwrap+=<,>,[,]"
+vim.cmd "set wrap linebreak"
+-- Navigate buffers
+keymap("n", "<S-l>", ":bnext<CR>", opts)
+keymap("n", "<S-h>", ":bprevious<CR>", opts)
+-- Move text up and down
+keymap("n", "<A-j>", "<Esc>:m .+1<CR>==gi", opts)
+keymap("n", "<A-k>", "<Esc>:m .-2<CR>==gi", opts)
+keymap("v", "<A-j>", ":m .+1<CR>==", opts)
+keymap("v", "<A-k>", ":m .-2<CR>==", opts)
+keymap("v", "p", '"_dP', opts)
+keymap("x", "J", ":move '>+1<CR>gv-gv", opts)
+keymap("x", "K", ":move '<-2<CR>gv-gv", opts)
+keymap("x", "<A-j>", ":move '>+1<CR>gv-gv", opts)
+keymap("x", "<A-k>", ":move '<-2<CR>gv-gv", opts)
+keymap('n', '<C-j>', ":MoveLine(1)<CR>", opts)
+keymap('n', '<C-k>', ":MoveLine(-1)<CR>", opts)
+keymap('v', '<C-j>', ":MoveBlock(1)<CR>", opts)
+keymap('v', '<C-k>', ":MoveBlock(-1)<CR>", opts)
+keymap('n', '<C-l>', ":MoveHChar(1)<CR>", opts)
+keymap('n', '<C-h>', ":MoveHChar(-1)<CR>", opts)
+keymap('v', '<C-l>', ":MoveHBlock(1)<CR>", opts)
+keymap('v', '<C-h>', ":MoveHBlock(-1)<CR>", opts)
+keymap('n', 'k', 'gk', { silent = true })
+keymap('n', 'j', 'gj', { silent = true })
+keymap('n', '0', 'g0', { silent = true })
 -- to disable icons and use a minimalist setup, uncomment the following
 -- lvim.use_icons = false
+--
+-- //PYTHON
+vim.g.python3_host_prog = '/usr/bin/python3'
 
 -- keymappings [view all the defaults by pressing <leader>Lk]
 lvim.leader = ","
@@ -59,6 +93,7 @@ lvim.builtin.which_key.mappings = {
   ["e"] = { "<cmd>NvimTreeToggle<cr>", "Explorer" },
   ["w"] = { "<cmd>w!<CR>", "Save" },
   ["q"] = { "<cmd>q!<CR>", "Quit" },
+  ["/"] = { "<Plug>(comment_toggle_linewise_current)", "Comment toggle current line" },
   ["c"] = { "<cmd>BufferKill<CR>", "Close Buffer" },
   ["h"] = { "<cmd>nohlsearch<CR>", "No Highlight" },
   ["f"] = {
@@ -237,20 +272,20 @@ lvim.builtin.treesitter.highlight.enable = true
 -- end
 
 -- -- set a formatter, this will override the language server formatting capabilities (if it exists)
--- local formatters = require "lvim.lsp.null-ls.formatters"
--- formatters.setup {
---   { command = "black", filetypes = { "python" } },
---   { command = "isort", filetypes = { "python" } },
---   {
---     -- each formatter accepts a list of options identical to https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#Configuration
---     command = "prettier",
---     ---@usage arguments to pass to the formatter
---     -- these cannot contain whitespaces, options such as `--line-width 80` become either `{'--line-width', '80'}` or `{'--line-width=80'}`
---     extra_args = { "--print-with", "100" },
---     ---@usage specify which filetypes to enable. By default a providers will attach to all the filetypes it supports.
---     filetypes = { "typescript", "typescriptreact" },
---   },
--- }
+local formatters = require "lvim.lsp.null-ls.formatters"
+formatters.setup {
+  --{ command = "black", filetypes = { "python" } },
+  --{ command = "isort", filetypes = { "python" } },
+  {
+    -- each formatter accepts a list of options identical to https://github.com/jose-elias-alvarez/null-ls.nvim/blob/main/doc/BUILTINS.md#Configuration
+    command = "prettier",
+    ---@usage arguments to pass to the formatter
+    -- these cannot contain whitespaces, options such as `--line-width 80` become either `{'--line-width', '80'}` or `{'--line-width=80'}`
+    -- extra_args = { "--print-with", "100" },
+    ---@usage specify which filetypes to enable. By default a providers will attach to all the filetypes it supports.
+    filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "css", "scss" },
+  },
+}
 
 -- -- set additional linters
 -- local linters = require "lvim.lsp.null-ls.linters"
@@ -307,25 +342,6 @@ lvim.plugins = {
     cmd = "TroubleToggle",
   },
   {
-    "karb94/neoscroll.nvim",
-    event = "WinScrolled",
-    config = function()
-      require('neoscroll').setup({
-        -- All these keys will be mapped to their corresponding default scrolling animation
-        mappings = { '<C-u>', '<C-d>', '<C-b>', '<C-f>',
-          '<C-y>', '<C-e>', 'zt', 'zz', 'zb' },
-        hide_cursor = false, -- Hide cursor while scrolling
-        stop_eof = true, -- Stop at <EOF> when scrolling downwards
-        use_local_scrolloff = false, -- Use the local scope of scrolloff instead of the global scope
-        respect_scrolloff = false, -- Stop scrolling when the cursor reaches the scrolloff margin of the file
-        cursor_scrolls_alone = true, -- The cursor will keep on scrolling even if the window cannot scroll further
-        easing_function = nil, -- Default easing function
-        pre_hook = nil, -- Function to run before the scrolling animation starts
-        post_hook = nil, -- Function to run after the scrolling animation ends
-      })
-    end
-  },
-  {
     "tpope/vim-surround",
 
     -- make sure to change the value of `timeoutlen` if it's not triggering correctly, see https://github.com/tpope/vim-surround/issues/117
@@ -355,7 +371,30 @@ lvim.plugins = {
         },
       })
     end,
-  }
+  },
+  {
+    "karb94/neoscroll.nvim",
+    config = function()
+      require('neoscroll').setup({
+        -- All these keys will be mapped to their corresponding default scrolling animation
+        mappings = { '<C-u>', '<C-d>', '<C-b>', '<C-f>',
+          '<C-y>', '<C-e>', 'zt', 'zz', 'zb' },
+        hide_cursor = false, -- Hide cursor while scrolling
+        stop_eof = true, -- Stop at <EOF> when scrolling downwards
+        use_local_scrolloff = false, -- Use the local scope of scrolloff instead of the global scope
+        respect_scrolloff = false, -- Stop scrolling when the cursor reaches the scrolloff margin of the file
+        cursor_scrolls_alone = true, -- The cursor will keep on scrolling even if the window cannot scroll further
+        easing_function = nil, -- Default easing function
+        pre_hook = nil, -- Function to run before the scrolling animation starts
+        post_hook = nil, -- Function to run after the scrolling animation ends
+      })
+    end
+  },
+  { "mg979/vim-visual-multi" },
+  {
+    "matze/vim-move",
+  },
+  { "GlennLeo/cobalt2" }
 }
 
 -- Autocommands (https://neovim.io/doc/user/autocmd.html)
